@@ -67,7 +67,7 @@ public class UserServiceIntegrationTests
     {
         // Arrange
         var options = GetValidOptions();
-        var validationResult = await _realUserOptionsValidator.ValidateAsync(options); // ✅ Using real validator
+        var validationResult = await _realUserOptionsValidator.ValidateAsync(options);
         Assert.True(validationResult.IsValid);
 
         var users = new List<User> { GetValidUser() };
@@ -115,7 +115,7 @@ public class UserServiceIntegrationTests
     {
         // Arrange
         var user = GetValidUser();
-        var validationResult = await _realUserValidator.ValidateAsync(user); // ✅ Using real validator
+        var validationResult = await _realUserValidator.ValidateAsync(user);
         Assert.True(validationResult.IsValid);
 
         _mockUserRepository.Setup(r => r.GetByIdAsync(user.Id, It.IsAny<CancellationToken>()))
@@ -135,8 +135,8 @@ public class UserServiceIntegrationTests
     {
         // Arrange
         var user = GetValidUser();
-        user.PersonalData.FirstName = ""; // Invalid
-        var validationResult = await _realUserValidator.ValidateAsync(user); // ✅ Using real validator
+        user.PersonalData.FirstName = "";
+        var validationResult = await _realUserValidator.ValidateAsync(user);
         Assert.False(validationResult.IsValid);
 
         // Act & Assert

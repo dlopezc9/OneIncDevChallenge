@@ -3,6 +3,12 @@ using Users.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddLogging(builder =>
+{
+    builder.AddConsole();
+    builder.AddDebug();
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

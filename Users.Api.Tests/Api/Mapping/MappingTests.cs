@@ -27,6 +27,7 @@ public class MappingTests
     [Fact]
     public void MapToUser_ShouldMapCorrectly()
     {
+        // Arrenge
         var request = new CreateUserRequest
         {
             FirstName = "John",
@@ -38,8 +39,10 @@ public class MappingTests
 
         _mockDateTime.Setup(d => d.UtcNow).Returns(new DateTime(2024, 2, 19));
 
+        // Act
         var result = request.MapToUser();
 
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(0, result.Id);
         Assert.Equal("John", result.PersonalData.FirstName);
@@ -51,6 +54,7 @@ public class MappingTests
     [Fact]
     public void MapToResponse_ShouldMapCorrectly()
     {
+        // Arrenge
         var user = new User
         {
             Id = 1,
@@ -69,8 +73,10 @@ public class MappingTests
 
         _mockDateTime.Setup(d => d.UtcNow).Returns(new DateTime(2024, 2, 19));
 
+        // Act
         var result = user.MapToResponse();
 
+        // Assert
         Assert.NotNull(result);
         Assert.Equal("John", result.FirstName);
         Assert.Equal("Doe", result.LastName);
@@ -82,6 +88,7 @@ public class MappingTests
     [Fact]
     public void MapToResponse_Enumerable_ShouldMapCorrectly()
     {
+        // Arrenge
         var users = new List<User>
         {
             new User
@@ -103,8 +110,10 @@ public class MappingTests
 
         _mockDateTime.Setup(d => d.UtcNow).Returns(new DateTime(2024, 2, 19));
 
+        // Act
         var result = users.MapToResponse(page: 1, pageSize: 10, userCount: 1);
 
+        // Assert
         Assert.NotNull(result);
         Assert.Single(result.Users);
         Assert.Equal(1, result.Page);
@@ -115,6 +124,7 @@ public class MappingTests
     [Fact]
     public void MapToUser_UpdateRequest_ShouldMapCorrectly()
     {
+        // Arrenge
         var request = new UpdateUserRequest
         {
             FirstName = "Jane",
@@ -126,8 +136,10 @@ public class MappingTests
 
         _mockDateTime.Setup(d => d.UtcNow).Returns(new DateTime(2024, 2, 19));
 
+        // Act
         var result = request.MapToUser(id: 10);
 
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(10, result.Id);
         Assert.Equal("Jane", result.PersonalData.FirstName);
@@ -139,6 +151,7 @@ public class MappingTests
     [Fact]
     public void MapToOptions_ShouldMapCorrectly()
     {
+        // Arrenge
         var request = new GetAllUsersRequest
         {
             Date = new DateTime(2023, 1, 1),
@@ -146,8 +159,10 @@ public class MappingTests
             PageSize = 20
         };
 
+        // Act
         var result = request.MapToOptions();
 
+        // Assert
         Assert.NotNull(result);
         Assert.Equal(new DateTime(2023, 1, 1), result.Date);
         Assert.Equal(2, result.Page);
@@ -157,6 +172,7 @@ public class MappingTests
     [Fact]
     public void CalculateAge_ShouldReturnCorrectAge()
     {
+        // Arrenge
         var dateOfBirth = new DateTime(2000, 1, 1);
         _mockDateTime.Setup(d => d.UtcNow).Returns(new DateTime(2024, 2, 19));
 
@@ -169,14 +185,17 @@ public class MappingTests
             PhoneNumber = "1234567890"
         };
 
+        // Act
         var result = request.MapToUser();
 
+        // Assert
         Assert.Equal(24, CalculateAgeIndirectly(result.PersonalData.DateOfBirth));
     }
 
     [Fact]
     public async Task Should_Fail_When_FirstName_Is_Empty()
     {
+        // Arrenge
         var user = new User
         {
             Id = 0,
@@ -184,8 +203,10 @@ public class MappingTests
             EmailAddress = new EmailAddress { Email = "test@example.com" }
         };
 
+        // Act
         var result = await _validator.TestValidateAsync(user);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(u => u.PersonalData.FirstName)
             .WithErrorMessage("FirstName is required");
     }
@@ -193,6 +214,7 @@ public class MappingTests
     [Fact]
     public async Task Should_Fail_When_FirstName_Exceeds_Max_Length()
     {
+        // Arrenge
         var user = new User
         {
             Id = 0,
@@ -200,8 +222,10 @@ public class MappingTests
             EmailAddress = new EmailAddress { Email = "test@example.com" }
         };
 
+        // Act
         var result = await _validator.TestValidateAsync(user);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(u => u.PersonalData.FirstName)
             .WithErrorMessage("Maximum length is 128 characters.");
     }
@@ -209,6 +233,7 @@ public class MappingTests
     [Fact]
     public async Task Should_Fail_When_LastName_Exceeds_Max_Length()
     {
+        // Arrenge
         var user = new User
         {
             Id = 0,
@@ -216,8 +241,10 @@ public class MappingTests
             EmailAddress = new EmailAddress { Email = "test@example.com" }
         };
 
+        // Act
         var result = await _validator.TestValidateAsync(user);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(u => u.PersonalData.LastName)
             .WithErrorMessage("Maximum length is 128 characters.");
     }
@@ -225,6 +252,7 @@ public class MappingTests
     [Fact]
     public async Task Should_Fail_When_Email_Is_Invalid()
     {
+        // Arrenge
         var user = new User
         {
             Id = 0,
@@ -232,8 +260,10 @@ public class MappingTests
             EmailAddress = new EmailAddress { Email = "invalid-email" }
         };
 
+        // Act
         var result = await _validator.TestValidateAsync(user);
 
+        //Assert
         result.ShouldHaveValidationErrorFor(u => u.EmailAddress.Email)
             .WithErrorMessage("Invalid email format.");
     }
@@ -241,6 +271,7 @@ public class MappingTests
     [Fact]
     public async Task Should_Fail_When_Email_Is_Not_Unique()
     {
+        // Arrenge
         var user = new User
         {
             Id = 0,
@@ -249,11 +280,12 @@ public class MappingTests
         };
 
         _mockUserRepository.Setup(r => r.GetByEmailAsync("test@example.com", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(user); // Simulate that user already exists
+            .ReturnsAsync(user);
 
-
+        // Act
         var result = await _validator.TestValidateAsync(user);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(u => u.EmailAddress.Email)
             .WithErrorMessage("Email already registered.");
     }
@@ -261,6 +293,7 @@ public class MappingTests
     [Fact]
     public async Task Should_Fail_When_DateOfBirth_Is_Empty()
     {
+        // Arrenge
         var user = new User
         {
             Id = 0,
@@ -268,8 +301,10 @@ public class MappingTests
             EmailAddress = new EmailAddress { Email = "test@example.com" }
         };
 
+        // Act
         var result = await _validator.TestValidateAsync(user);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(u => u.PersonalData.DateOfBirth)
             .WithErrorMessage("DateOfBirth is required");
     }
@@ -277,6 +312,7 @@ public class MappingTests
     [Fact]
     public async Task Should_Fail_When_User_Is_Under_18()
     {
+        // Arrenge
         _mockDateTime.Setup(d => d.UtcNow).Returns(new DateTime(2024, 2, 19));
 
         var user = new User
@@ -286,8 +322,10 @@ public class MappingTests
             EmailAddress = new EmailAddress { Email = "test@example.com" }
         };
 
+        // Act
         var result = await _validator.TestValidateAsync(user);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(u => u.PersonalData.DateOfBirth)
             .WithErrorMessage("User should be over 18 years old.");
     }
@@ -295,6 +333,7 @@ public class MappingTests
     [Fact]
     public async Task Should_Fail_When_PhoneNumber_Is_Invalid()
     {
+        // Arrenge
         var user = new User
         {
             Id = 0,
@@ -302,8 +341,10 @@ public class MappingTests
             EmailAddress = new EmailAddress { Email = "test@example.com" }
         };
 
+        // Act
         var result = await _validator.TestValidateAsync(user);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(u => u.PersonalData.PhoneNumber)
             .WithErrorMessage("Phone number must contain only digits and be 10 characters long.");
     }
@@ -311,6 +352,7 @@ public class MappingTests
     [Fact]
     public async Task Should_Fail_When_PhoneNumber_Is_Empty()
     {
+        // Arrenge
         var user = new User
         {
             Id = 0,
@@ -318,8 +360,10 @@ public class MappingTests
             EmailAddress = new EmailAddress { Email = "test@example.com" }
         };
 
+        // Act
         var result = await _validator.TestValidateAsync(user);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(u => u.PersonalData.PhoneNumber)
             .WithErrorMessage("Phone number is required.");
     }

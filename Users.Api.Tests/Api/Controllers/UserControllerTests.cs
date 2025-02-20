@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Users.Api.Controllers;
 using Users.Api.Mapping;
@@ -12,11 +13,13 @@ public class UsersControllerTests
 {
     private readonly UsersController _controller;
     private readonly Mock<IUserService> _mockUserService;
+    private readonly Mock<ILogger<UsersController>> _logger;
 
     public UsersControllerTests()
     {
         _mockUserService = new Mock<IUserService>();
-        _controller = new UsersController(_mockUserService.Object);
+        _logger = new Mock<ILogger<UsersController>>();
+        _controller = new UsersController(_mockUserService.Object, _logger.Object);
     }
 
     [Fact]
@@ -42,6 +45,24 @@ public class UsersControllerTests
         // Assert
         var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result);
         Assert.Equal(nameof(_controller.Get), createdAtActionResult.ActionName);
+
+        _logger.Verify(
+        x => x.Log(
+            LogLevel.Information,
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((v, t) => v.ToString() == "Creating user with email: john.doe@example.com"),
+            It.IsAny<Exception>(),
+            It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+        Times.Once);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "User with email: john.doe@example.com created"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
     }
 
     [Fact]
@@ -72,6 +93,24 @@ public class UsersControllerTests
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
         Assert.NotNull(okResult.Value);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "Getting user with ID: 1"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "User with ID: 1 retrived"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
     }
 
     [Fact]
@@ -79,7 +118,9 @@ public class UsersControllerTests
     {
         // Arrange
         var request = new GetAllUsersRequest { Page = 1, PageSize = 10 };
-        var users = new List<User> { new User
+        var users = new List<User>
+        {
+            new User
             {
                 Id = 1,
                 PersonalData = new PersonalData
@@ -95,6 +136,7 @@ public class UsersControllerTests
                 }
             }
         };
+
         _mockUserService.Setup(s => s.GetAllAsync(It.IsAny<GetAllUsersOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(users);
 
@@ -107,13 +149,37 @@ public class UsersControllerTests
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
         Assert.NotNull(okResult.Value);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "Getting all users from page: 1, with pageSize: 10"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "Finished retriving users"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
     }
 
     [Fact]
     public async Task Update_Should_Return_Ok_When_User_Updated()
     {
         // Arrange
-        var request = new UpdateUserRequest { FirstName = "Updated", DateOfBirth = new DateTime(1996, 2, 1), Email = "valid@test.com", PhoneNumber = "1234567890" };
+        var request = new UpdateUserRequest
+        {
+            FirstName = "Updated",
+            DateOfBirth = new DateTime(1996, 2, 1),
+            Email = "valid@test.com",
+            PhoneNumber = "1234567890"
+        };
         var user = request.MapToUser(1);
 
         _mockUserService.Setup(s => s.UpdateAsync(It.IsAny<User?>(), It.IsAny<CancellationToken>()))
@@ -125,6 +191,24 @@ public class UsersControllerTests
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result);
         Assert.NotNull(okResult.Value);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "Updating user with ID: 1"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "user with ID: 1 updated"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
     }
 
     [Fact]
@@ -139,6 +223,24 @@ public class UsersControllerTests
 
         // Assert
         Assert.IsType<OkResult>(result);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "Deleting user with ID: 1"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "User with ID: 1 deleted"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
     }
 
     [Fact]
@@ -153,13 +255,37 @@ public class UsersControllerTests
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "Getting user with ID: 1"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "Could not find any user with ID: 1"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
     }
 
     [Fact]
     public async Task Update_Should_Return_NotFound_When_User_Does_Not_Exist()
     {
         // Arrange
-        var request = new UpdateUserRequest { FirstName = "Updated", DateOfBirth = new DateTime(1996, 2, 1), Email = "valid@test.com", PhoneNumber = "1234567890" };
+        var request = new UpdateUserRequest
+        {
+            FirstName = "Updated",
+            DateOfBirth = new DateTime(1996, 2, 1),
+            Email = "valid@test.com",
+            PhoneNumber = "1234567890"
+        };
         var user = request.MapToUser(1);
 
         _mockUserService.Setup(s => s.UpdateAsync(user, It.IsAny<CancellationToken>()))
@@ -170,6 +296,24 @@ public class UsersControllerTests
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "Updating user with ID: 1"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "Could not find any user with ID: 1"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
     }
 
     [Fact]
@@ -184,5 +328,23 @@ public class UsersControllerTests
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "Deleting user with ID: 1"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
+
+        _logger.Verify(
+            x => x.Log(
+                LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString() == "Could not find any user with the given Id: 1"),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)),
+            Times.Once);
     }
 }
