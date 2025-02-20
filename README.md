@@ -15,3 +15,15 @@ About Best Practices:
 - Middleware: Allows to check for exceptions without bloating the code.
 - Asynchronous Programming with Cancellation Tokens: Enables the app to be faster and more responsive to user changes.
 - Design Patterns: Includes patterns such as the Repository Pattern and IDateTime, which improve testability and enable better implementation of different functions.
+
+
+SQL Script for the table used:
+
+CREATE TABLE Users (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    FirstName NVARCHAR(128) NOT NULL,
+    LastName NVARCHAR(128) NULL,
+    Email NVARCHAR(255) NOT NULL UNIQUE,
+    DateOfBirth DATETIME NOT NULL,
+    PhoneNumber CHAR(10) NOT NULL
+);
